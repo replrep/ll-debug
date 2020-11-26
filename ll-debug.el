@@ -6,7 +6,7 @@
 ;; https://github.com/replrep/ll-debug
 ;; http://www.cbrunzema.de/software.html#ll-debug
 
-;; Version: 2.0.1
+;; Version: 2.0.2
 ;; License: GPL-2.0 License
 
 ;; This program is free software; you can redistribute it and/or
@@ -195,6 +195,11 @@
 
 
 ;; History:
+;; 2020-11-26  Claus Brunzema
+;;         * Small fixes and cleanup
+;;         * Remove compatibility hacks (sorry xemacs...)
+;;         * Add support for javascript, typescript and clojure
+;;         * Version 2.0.2
 ;; 2020-11-15  alstjr7375
 ;;         * Deprecated lib cl to cl-lib
 ;;         * Active lexical binding
@@ -309,23 +314,11 @@ See `ll-debug-statement-alist' and `ll-debug-expand', too."
   "Stores mode-specific ll-debug-structs.")
 
 
-;;; gnuemacs / xemacs compatibility ---------------------------------------
-(defun ll-debug-region-exists-p ()
-  (if (fboundp 'region-exists-p)
-      (region-exists-p)                       ;XEmacs
-    (and transient-mark-mode mark-active)))   ;GNUEmacs
-
-(defun ll-debug-uncomment-region (beg end)
-  (if (fboundp 'uncomment-region)
-      (uncomment-region beg end)              ;GNUEmacs
-    (comment-region beg end -1)))             ;XEmacs
-
-
 ;;; misc. Functions -------------------------------------------------------
 (defun ll-debug-region-or-line-start ()
   "Region or line start point."
   (save-excursion
-    (if (ll-debug-region-exists-p)
+    (if (use-region-p)
         (progn
           (goto-char (region-beginning))
           (point-at-bol))
@@ -336,7 +329,7 @@ See `ll-debug-statement-alist' and `ll-debug-expand', too."
 (defun ll-debug-region-or-line-end ()
   "Region or line end point."
   (save-excursion
-    (if (ll-debug-region-exists-p)
+    (if (use-region-p)
         (progn
           (goto-char (region-end))
           (unless (bolp)
@@ -389,7 +382,7 @@ invoked recursively on the returned value."
 (defun ll-debug-region-or-line-comment-start ()
   "Find the comment marker at the beginning of the line or region."
   (save-excursion
-    (when (ll-debug-region-exists-p) (goto-char (region-beginning)))
+    (when (use-region-p) (goto-char (region-beginning)))
     (beginning-of-line)
     (skip-chars-forward " \t" (point-at-eol))
     (if (looking-at (regexp-quote comment-start))
@@ -412,15 +405,15 @@ invoked recursively on the returned value."
   (interactive)
   (comment-region (ll-debug-region-or-line-start)
                   (ll-debug-region-or-line-end))
-  (unless (ll-debug-region-exists-p)
+  (unless (use-region-p)
     (forward-line)))
 
 (defun ll-debug-uncomment-region-or-line ()
   "Uncomment the current line or all lines of the region."
   (interactive)
-  (ll-debug-uncomment-region (ll-debug-region-or-line-comment-start)
-                             (ll-debug-region-or-line-end))
-  (unless (ll-debug-region-exists-p)
+  (uncomment-region (ll-debug-region-or-line-comment-start)
+                    (ll-debug-region-or-line-end))
+  (unless (use-region-p)
     (forward-line)))
 
 (defun ll-debug-toggle-comment-region-or-line ()
@@ -497,7 +490,7 @@ things. For more information about these, see the documentation of
 (defun ll-debug-insert (arg)
   "Insert a line of debug output at point according to mode.
 Looks up the current mode in `ll-debug-statement-alist'. The prefix
-thing of the coressponding ll-debug-struct gets inserted by
+thing of the corresponding ll-debug-struct gets inserted by
 `ll-debug-insert'. The number of times C-u was pressed (prefix arg)
 determines the entry from the content list of the ll-debug-struct that
 gets inserted next. Finally the postfix thing from the ll-debug-struct
@@ -583,11 +576,11 @@ Uses `query-replace-regexp' internally."
                                       (setq v1 (concat v1 " "
                                                        (substring str 1)))
                                     (progn
-                                      (backward-word 1)
+                                      (backward-sexp 1)
                                       (backward-char 1)
                                       (insert "\\")
                                       (forward-char 1)
-                                      (forward-word 1)
+                                      (forward-sexp 1)
                                       (setq v1 (concat v1
                                                        " *"
                                                        (substring str 1)))))
@@ -603,7 +596,7 @@ Uses `query-replace-regexp' internally."
                                " << \"  " str ":\" << " str)))
 
 (ll-debug-register-mode 'c-mode
-                        "printf(" ");"
+                        "{ printf(" "); fflush(stdout); }"
                         '(nil "\"" (ll-debug-create-next-debug-string) "\\n\"")
                         '(nil "\"" (ll-debug-create-next-debug-string)
                               ("Variable name: "
@@ -635,6 +628,19 @@ Uses `query-replace-regexp' internally."
                         "disp(" ");"
                         '(nil "'" (ll-debug-create-next-debug-string) "'"))
 
+(ll-debug-register-mode '(js-mode typescript-mode)
+                        "console.log(" ");"
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\"")
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\""
+                              ("Variable name: "
+                               ",\"  " str ":\"," str)))
+
+(ll-debug-register-mode 'clojure-mode
+                        "(println " ")"
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\"")
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\" "
+                              ("Variable name: "
+                               "\"  " str ":\" " str " ")))
 (provide 'll-debug)
 
 ;;; ll-debug.el ends here
