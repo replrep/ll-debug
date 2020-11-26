@@ -1,0 +1,5 @@
+* ll-debug
+
+This is a package to support low lovel printf debugging (see
+https://en.wikipedia.org/wiki/Debugging#Techniques). Please see the
+comment section at the top of ll-debug.el for further documentation.
