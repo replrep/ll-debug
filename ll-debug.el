@@ -1,13 +1,13 @@
-;;                                                     -*- Emacs-Lisp -*-
-
-;;; ll-debug.el --- low level debug tools
+;;; ll-debug.el --- low level debug tools -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2005 Claus Brunzema <mail@cbrunzema.de>
 
+;; Home:
+;; https://github.com/replrep/ll-debug
 ;; http://www.cbrunzema.de/software.html#ll-debug
 
-;; Version: 2.0.0
-;; $Id: ll-debug.el,v 1.22 2004/12/28 22:23:16 chb Exp $
+;; Version: 2.0.1
+;; License: GPL-2.0 License
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -75,18 +75,19 @@
 ;; Prerequisites:
 ;;
 ;; I made the latest version of ll-debug with the following emacs:
-;; GNU Emacs 21.3.1
+;; GNU Emacs 26.3
 ;; Please let me know if other versions work.
 
 
 ;; Installation:
 ;;
 ;; Get the newest version of ll-debug.el via
-;;
+;; https://github.com/replrep/ll-debug
+;; or
 ;; http://www.cbrunzema.de/software.html#ll-debug
 ;; 
 ;; and put it in your load-path. Add the following form to your init
-;; file (~/.emacs or ~/.xemacs/init.el):
+;; file (~/.emacs or ~/.emacs.d/init.el):
 ;;
 ;;  (require 'll-debug)
 ;;
@@ -194,6 +195,10 @@
 
 
 ;; History:
+;; 2020-11-15  alstjr7375
+;;         * Deprecated lib cl to cl-lib
+;;         * Active lexical binding
+;;         * Version 2.0.1
 ;; 2004-12-28  Claus Brunzema
 ;;         * Major rewrite using defstruct.
 ;;         * New ll-debug-insert instead of
@@ -256,7 +261,7 @@
 ;;           (re-search-forward comment-start-skip ...).
 ;;         * use ll-debug-region-or-line-comment-start instead of
 ;;           the optional ignore-current-column argument for
-;;           ll-debug-region-or-line-start. 
+;;           ll-debug-region-or-line-start.
 ;;         * ll-debug-copy-and-comment-region-or-line works correctly
 ;;           now if point is in the middle of the line.
 ;;         * Version 0.2.1
@@ -285,10 +290,10 @@
 ;;; Code:
 
 (require 'skeleton)
-(require 'cl)
+(require 'cl-lib)
 
 ;; Struct------------------------------------------------------------------
-(defstruct ll-debug-struct
+(cl-defstruct ll-debug-struct
   "Strings/functions/skeletons to create debug messages for a single mode.
 See `ll-debug-statement-alist' and `ll-debug-expand', too."
   (prefix "")
@@ -315,9 +320,10 @@ See `ll-debug-statement-alist' and `ll-debug-expand', too."
       (uncomment-region beg end)              ;GNUEmacs
     (comment-region beg end -1)))             ;XEmacs
 
-                      
+
 ;;; misc. Functions -------------------------------------------------------
 (defun ll-debug-region-or-line-start ()
+  "Region or line start point."
   (save-excursion
     (if (ll-debug-region-exists-p)
         (progn
@@ -328,6 +334,7 @@ See `ll-debug-statement-alist' and `ll-debug-expand', too."
         (point-at-bol)))))
 
 (defun ll-debug-region-or-line-end ()
+  "Region or line end point."
   (save-excursion
     (if (ll-debug-region-exists-p)
         (progn
@@ -350,7 +357,7 @@ C-v C-d   ll-debug-insert"
   (interactive)
   (unless (keymapp (global-key-binding '[(control v)]))
     (global-unset-key '[(control v)]))
-  
+
   (define-key global-map '[(control v) (control v)]
     #'ll-debug-toggle-comment-region-or-line)
   (define-key global-map '[(control v) v]
@@ -368,7 +375,7 @@ If THING is a list, it is treated as a skeleton (see `skeleton-insert')
 If THING is a function, it is funcalled and `ll-debug-expand' is
 invoked recursively on the returned value."
   (when thing
-    (etypecase thing
+    (cl-etypecase thing
       (string
        (insert thing))
       (list
@@ -398,7 +405,7 @@ invoked recursively on the returned value."
     (goto-char end)
     (comment-region start end)
     (save-excursion
-      (insert-string src-code))))
+      (insert src-code))))
 
 (defun ll-debug-comment-region-or-line ()
   "Comment out the current line or all lines of the region."
@@ -424,7 +431,7 @@ invoked recursively on the returned value."
     (ll-debug-comment-region-or-line)))
 
 
-;; debug output statements ------------------------------------------------ 
+;; debug output statements ------------------------------------------------
 (defun ll-debug-before-text-p ()
   "Return t iff point is at bol or in leading whitespace."
   (save-excursion
@@ -544,11 +551,10 @@ Uses `query-replace-regexp' internally."
 (ll-debug-register-mode 'lisp-mode
                         "(CL:format t " ")"
                         '(nil "\"" (ll-debug-create-next-debug-string) "~%\"")
-                        '(nil "\"" (ll-debug-create-next-debug-string) 
+                        '(nil "\"" (ll-debug-create-next-debug-string)
                               ("Variable name: "
                                "  " str ":~S"
-                               '(progn (setq v1 (concat v1 " " str)) nil)
-                               )
+                               '(progn (setq v1 (concat v1 " " str)) nil))
                               "~%\" " v1))
 
 
@@ -564,7 +570,7 @@ Uses `query-replace-regexp' internally."
 (ll-debug-register-mode '(perl-mode cperl-mode)
                         "print " ";"
                         '(nil "\"" (ll-debug-create-next-debug-string) "\\n\"")
-                        '(nil "\"" (ll-debug-create-next-debug-string) 
+                        '(nil "\"" (ll-debug-create-next-debug-string)
                               ("Variable: "
                                "  \\" str ":" str)
                               "\\n\"")
