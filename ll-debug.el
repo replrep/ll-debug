@@ -1,13 +1,15 @@
-;;; ll-debug.el --- low level debug tools -*- lexical-binding: t -*-
+;;; ll-debug.el --- Low level debug tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2005 Claus Brunzema <mail@cbrunzema.de>
+;; Copyright (C) 2002-2020 Claus Brunzema <mail@cbrunzema.de>
 
-;; Home:
-;; https://github.com/replrep/ll-debug
-;; http://www.cbrunzema.de/software.html#ll-debug
 
-;; Version: 2.0.2
+;; Author: Claus Brunzema <mail@cbrunzema.de>
+;; Homepage: https://github.com/replrep/ll-debug
+;; or http://www.cbrunzema.de/software.html#ll-debug
+
+;; Package-Version: 2.0.2
 ;; License: GPL-2.0 License
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -74,8 +76,7 @@
 
 ;; Prerequisites:
 ;;
-;; I made the latest version of ll-debug with the following emacs:
-;; GNU Emacs 26.3
+;; I made the latest version of ll-debug with GNU Emacs 26.3.
 ;; Please let me know if other versions work.
 
 
@@ -85,7 +86,7 @@
 ;; https://github.com/replrep/ll-debug
 ;; or
 ;; http://www.cbrunzema.de/software.html#ll-debug
-;; 
+;;
 ;; and put it in your load-path. Add the following form to your init
 ;; file (~/.emacs or ~/.emacs.d/init.el):
 ;;
@@ -195,6 +196,9 @@
 
 
 ;; History:
+;; 2020-11-28  Claus Brunzema
+;;         * Prepare/cleanup for Melpa
+;;         * Version 2.0.3
 ;; 2020-11-26  Claus Brunzema
 ;;         * Small fixes and cleanup
 ;;         * Remove compatibility hacks (sorry xemacs...)
@@ -489,13 +493,13 @@ things. For more information about these, see the documentation of
 
 (defun ll-debug-insert (arg)
   "Insert a line of debug output at point according to mode.
-Looks up the current mode in `ll-debug-statement-alist'. The prefix
-thing of the corresponding ll-debug-struct gets inserted by
-`ll-debug-insert'. The number of times C-u was pressed (prefix arg)
-determines the entry from the content list of the ll-debug-struct that
-gets inserted next. Finally the postfix thing from the ll-debug-struct
-is inserted into the current buffer.
-"
+Looks up the current mode in `ll-debug-statement-alist'. The
+prefix thing of the corresponding ll-debug-struct gets inserted
+by `ll-debug-insert'. The number of times \\[universal-argument]
+was pressed (prefix ARG) determines the entry from the content
+list of the ll-debug-struct that gets inserted next. Finally the
+postfix thing from the ll-debug-struct is inserted into the
+current buffer."
   (interactive "P")
   (when (listp arg)
     (if (null arg)
