@@ -301,16 +301,16 @@
 (require 'skeleton)
 (require 'cl-lib)
 
-;; Struct------------------------------------------------------------------
+;;; type ------------------------------------------------------------------
 (cl-defstruct ll-debug-struct
   "Strings/functions/skeletons to create debug messages for a single mode.
-See `ll-debug-statement-alist' and `ll-debug-expand', too."
+See `ll-debug-statement-alist' and `ll-debug-expand'."
   (prefix "")
   (postfix "")
   (content '() :type list))
 
 
-;; Variables --------------------------------------------------------------
+;;; variables -------------------------------------------------------------
 (defvar ll-debug-output-prefix "DEBUG-"
   "*Prefix string for debug output messages.")
 
@@ -318,7 +318,7 @@ See `ll-debug-statement-alist' and `ll-debug-expand', too."
   "Stores mode-specific ll-debug-structs.")
 
 
-;;; misc. Functions -------------------------------------------------------
+;;; helper functions ------------------------------------------------------
 (defun ll-debug-region-or-line-start ()
   "Region or line start point."
   (save-excursion
@@ -382,7 +382,7 @@ invoked recursively on the returned value."
         (funcall thing))))))
 
 
-;; comment in and out -----------------------------------------------------
+;;; comment in and out ----------------------------------------------------
 (defun ll-debug-region-or-line-comment-start ()
   "Find the comment marker at the beginning of the line or region."
   (save-excursion
@@ -428,7 +428,7 @@ invoked recursively on the returned value."
     (ll-debug-comment-region-or-line)))
 
 
-;; debug output statements ------------------------------------------------
+;;; debug output statements -----------------------------------------------
 (defun ll-debug-before-text-p ()
   "Return t iff point is at bol or in leading whitespace."
   (save-excursion
@@ -535,7 +535,7 @@ Uses `query-replace-regexp' internally."
                           "")))
 
 
-;; register modes ---------------------------------------------------------
+;;; register modes --------------------------------------------------------
 (ll-debug-register-mode 'scheme-mode
                         "(begin " "(newline))"
                         '(nil "(display \""
