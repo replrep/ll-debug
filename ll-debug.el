@@ -7,7 +7,7 @@
 ;; Homepage: https://github.com/replrep/ll-debug
 ;; or http://www.cbrunzema.de/software.html#ll-debug
 
-;; Version: 2.0.3
+;; Version: 2.0.4
 ;; License: GPL-2.0 License
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: abbrev, convenience, tools, c, lisp
