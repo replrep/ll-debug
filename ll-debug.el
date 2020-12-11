@@ -10,6 +10,7 @@
 ;; Version: 2.0.3
 ;; License: GPL-2.0 License
 ;; Package-Requires: ((emacs "24.3"))
+;; Keywords: abbrev, convenience, tools, c, lisp
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -93,23 +94,27 @@
 ;;  (require 'll-debug)
 ;;
 ;; Now you can bind ll-debug commands to keystrokes yourself or just
-;; call `ll-debug-install-suggested-keybindings'. It clobbers C-v,
-;; which may not be completely emacs-political-correct, but it happens
-;; to be the stuff I use daily, it is only a suggestion, blah, if you
-;; don't like it, don't use it blah blah, do it your own way blah bla
-;; blah and don't flame me....
-;; `ll-debug-install-suggested-keybindings' installs the following
-;; keybindings:
+;; call `ll-debug-mode'. `ll-debug-mode' is a minor mode that installs
+;; `ll-debug-mode-map'. It clobbers C-v, which may not be completely
+;; emacs-political-correct, but it happens to be the stuff I use
+;; daily, it is only a suggestion, blah, if you don't like it, don't
+;; use it blah blah, do it your own way blah bla blah and don't flame
+;; me.... `ll-debug-mode-map' has the following keybindings:
 ;;
-;; C-v C-v   ll-debug-toggle-comment-region-or-line
-;; C-v v     ll-debug-uncomment-region-or-line
-;; C-v C-y   ll-debug-copy-and-comment-region-or-line
-;; C-v C-d   ll-debug-insert
+;; C-v C-v   `ll-debug-toggle-comment-region-or-line'
+;; C-v v     `ll-debug-uncomment-region-or-line'
+;; C-v C-y   `ll-debug-copy-and-comment-region-or-line'
+;; C-v C-d   `ll-debug-insert'
+;;
+;; If you want to activate `ll-debug-mode' automatically for certain
+;; modes, put it into the usual hooks, e.g.
+;;
+;; (add-hook 'cperl-mode-hook #'ll-debug-mode)
 
 
 ;; Usage example 1:
 ;;
-;; If you use `ll-debug-install-suggested-keybindings', hitting C-v C-d
+;; If you activate `ll-debug-mode', hitting C-v C-d
 ;; in a c-mode buffer called 'main.c' produces:
 ;;
 ;;    printf("DEBUG-1-main.c\n");
@@ -145,11 +150,11 @@
 ;;
 ;; Usage example 3:
 ;;
-;; The keybindings installed via
-;; `ll-debug-install-suggested-keybindings' will call an alternative
+;; The keybindings in `ll-debug-mode-map' will call a alternative
 ;; versions for variable output if one ore more C-u prefix args are
-;; given. An alternative version is currently available in (c)perl-mode
-;; only. So, in a (c)perl-mode buffer called 'answer.pl' these keys
+;; given. An alternative version is currently available in
+;; (c)perl-mode only. So, in a (c)perl-mode buffer called 'answer.pl'
+;; these keys
 ;;
 ;; C-u C-u C-v C-d [ @quux <RET> %thud <RET> $grunt <RET> <RET> ]
 ;;
@@ -318,6 +323,41 @@ See `ll-debug-statement-alist' and `ll-debug-expand'."
   "Stores mode-specific ll-debug-structs.")
 
 
+;;; minor mode ------------------------------------------------------------
+(defvar ll-debug-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map '[(control v) (control v)]
+      #'ll-debug-toggle-comment-region-or-line)
+    (define-key map '[(control v) ?v]
+      #'ll-debug-uncomment-region-or-line)
+    (define-key map '[(control v) (control y)]
+      #'ll-debug-copy-and-comment-region-or-line)
+    (define-key map '[(control v) (control d)]
+      #'ll-debug-insert)
+    map)
+  "Keymap for function `ll-debug-mode'.")
+
+;;;###autoload
+(define-minor-mode ll-debug-mode
+  "The ll-debug minor mode provides commands to support a low level debug style.
+
+It features quick insertion of various debug output statements
+and improved functions for commenting and uncommenting chunks of
+code.
+
+By default the mode installs the following keybindings with
+`ll-debug-mode-map' (clobbering C-v to act as a prefix key):
+
+C-v C-v   `ll-debug-toggle-comment-region-or-line'
+C-v v     `ll-debug-uncomment-region-or-line'
+C-v C-y   `ll-debug-copy-and-comment-region-or-line'
+C-v C-d   `ll-debug-insert'
+
+Configure `ll-debug-mode-map' to change these."
+  :lighter nil
+  :keymap ll-debug-mode-map)
+
+
 ;;; helper functions ------------------------------------------------------
 (defun ll-debug-region-or-line-start ()
   "Region or line start point."
@@ -342,28 +382,6 @@ See `ll-debug-statement-alist' and `ll-debug-expand'."
       (progn
         (forward-line)
         (point)))))
-
-(defun ll-debug-install-suggested-keybindings ()
-  "Install suggested keybindings for ll-debug.
-This installs the following keybindings (clobbering C-v):
-
-C-v C-v   ll-debug-toggle-comment-region-or-line
-C-v v     ll-debug-uncomment-region-or-line
-C-v C-y   ll-debug-copy-and-comment-region-or-line
-C-v C-d   ll-debug-insert"
-  (interactive)
-  (unless (keymapp (global-key-binding '[(control v)]))
-    (global-unset-key '[(control v)]))
-
-  (define-key global-map '[(control v) (control v)]
-    #'ll-debug-toggle-comment-region-or-line)
-  (define-key global-map '[(control v) v]
-    #'ll-debug-uncomment-region-or-line)
-  (define-key global-map '[(control v) (control y)]
-    #'ll-debug-copy-and-comment-region-or-line)
-  (define-key global-map '[(control v) (control d)]
-    #'ll-debug-insert))
-
 
 (defun ll-debug-expand (thing)
   "Expands THING into the current buffer.
