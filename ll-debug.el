@@ -201,6 +201,8 @@
 
 
 ;; History:
+;; 2021-03-27  alstjr7375
+;;         * Add support for rust
 ;; 2020-11-28  Claus Brunzema
 ;;         * Prepare/cleanup for Melpa
 ;;         * Version 2.0.3
@@ -642,6 +644,13 @@ Uses `query-replace-regexp' internally."
                         "puts " ""
                         '(nil "\"" (ll-debug-create-next-debug-string) "\""))
 
+(ll-debug-register-mode '(rust-mode rustic-mode)
+                        "println!(" ");"
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\"")
+                        '(nil "\"" (ll-debug-create-next-debug-string) "\""
+                              ("Variable name: "
+                               ",\"  " str ":\"," str)))
+
 (ll-debug-register-mode 'sh-mode
                         "echo " ""
                         '(nil (ll-debug-create-next-debug-string)))
@@ -650,7 +659,7 @@ Uses `query-replace-regexp' internally."
                         "disp(" ");"
                         '(nil "'" (ll-debug-create-next-debug-string) "'"))
 
-(ll-debug-register-mode '(js-mode typescript-mode)
+(ll-debug-register-mode '(js-mode js2-mode typescript-mode)
                         "console.log(" ");"
                         '(nil "\"" (ll-debug-create-next-debug-string) "\"")
                         '(nil "\"" (ll-debug-create-next-debug-string) "\""
